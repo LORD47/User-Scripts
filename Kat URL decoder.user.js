@@ -4,6 +4,7 @@
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
 // @include    /https?://(www\.)?kat.cr/[\w]+.*/
 // @exclude    /https?://(www\.)?kat.cr/usearch/*/
+// @version        1.1
 // @grant    none
 // ==/UserScript==
 
