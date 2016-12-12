@@ -25,15 +25,15 @@ var $j = jQuery.noConflict(true);
          {
           pos = idx;
 
-          if(idx == 1) $j(this).find('td').eq(-1).text();
-          else {
-                tmp_pts = $j(this).find('td').eq(-1).text();
+          if(idx > 1)
+          {
+           tmp_pts = $j(this).find('td').eq(-1).text();
 
-                if(tmp_pts == pts) pos = '-';
-                else pts = tmp_pts;
-               }
+           if(tmp_pts == pts) pos = '-';
+           else pts = tmp_pts;
+          }
+
           $j(this).find('td').eq(0).before('<td style="font-weight: bold">'+ pos +'</td>');
-
          }
 
      });
