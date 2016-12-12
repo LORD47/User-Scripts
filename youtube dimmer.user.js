@@ -3,7 +3,7 @@
 // @description  Turn the lights off
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
 // @require      http://www.openjs.com/scripts/events/keyboard_shortcuts/shortcut.js
-// @include    /https?://(www\.)?youtube\.com\/watch/*/
+// @include    /https?://(www.)?youtube.com/watch/*
 // @version        1.0
 // @grant    none
 // ==/UserScript==
@@ -57,8 +57,7 @@ function lightOn()
      // change the z-index of youtube search&+ div, so the darkening effect will take the entire screen
      $j('#masthead-positioner').css('z-index', '10');
 
-     // light bulb off : https://docs.google.com/uc?export=download&id=0B9FDK9Kf1tV1Mk1LRXRPZUcwS2s
-     $j('#masthead-search-terms').after('<a id="wb-lgtblb"><img id="wb-lightbulb" src="https://docs.google.com/uc?export=download&id=0B9FDK9Kf1tV1b3Bnb25nZmV1cXc" width="16" height="24"></a>');
+     $j('#yt-masthead-user').find('a').eq(0).before('<a class="yt-uix-button" id="wb-lgtblb" style="box-shadow: 0 0 0;" title="Turn the lights off (Shortcut: Ctrl+Shift+L)"><img id="wb-lightbulb" src="https://docs.google.com/uc?export=download&id=0B9FDK9Kf1tV1b3Bnb25nZmV1cXc" width="16" height="24"></a>');
 
      $j(document).on("click", "#wb-lgtblb", lightOff);
 
@@ -69,12 +68,6 @@ function lightOn()
      $j(document).on("click", "#dimmerDivMe", lightOn);
 
      shortcut.add('esc', lightOn);
-
-
-
-
-
-
 
     });
 
