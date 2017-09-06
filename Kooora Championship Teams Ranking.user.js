@@ -33,7 +33,7 @@ var $j = jQuery.noConflict(true);
            else pts = tmp_pts;
           }
 
-          $j(this).find('td').eq(0).before('<td style="font-weight: bold">'+ pos +'</td>');
+          $j(this).find('td').eq(0).before('<td style="font-weight: bold" title="'+ idx +'">'+ pos +'</td>');
          }
 
      });
