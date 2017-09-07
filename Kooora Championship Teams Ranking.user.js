@@ -3,7 +3,7 @@
 // @description  Add Positions Numbering to Teams Ranking
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
 // @include    /http://(www.)?kooora.com/*
-// @version       0.1.2
+// @version       0.1.2.0
 // @grant        none
 // ==/UserScript==
 
