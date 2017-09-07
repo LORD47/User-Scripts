@@ -16,8 +16,17 @@ var $j = jQuery.noConflict(true);
      var idx = -1;
          pts = 0;
          tmp_pts = 0;
+         search ='نقاط';
 
      $j('table.compTable').find('tr').each(function(){
+
+        if($j(this).find('td').eq(-1).text() == search)
+        {
+         idx = -1;
+         pts = 0;
+         tmp_pts = 0;
+        }
+
          idx++;
 
          if(idx == 0) $j(this).find('td').eq(0).before('<td class="wcheader1">#</td>');
