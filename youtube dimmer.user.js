@@ -3,8 +3,8 @@
 // @description  Turn the lights off
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
 // @require      http://www.openjs.com/scripts/events/keyboard_shortcuts/shortcut.js
-// @include    /https?://(www.)?youtube.com/watch/*
-// @version        1.0
+// @include    /https?://(www.)?youtube.com/*
+// @version        1.0.1
 // @grant    none
 // ==/UserScript==
 
