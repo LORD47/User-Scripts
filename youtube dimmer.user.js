@@ -26,7 +26,16 @@ function lightOff()
  dimmer.fadeToggle('slow');
 
  // the div that contains the video player, change it's z-index to a value > our dimmer div to make it visible
- $j('#player-api, #player').css('z-index', '999999');
+ var playerDiv = $j('#player-api'); // youtube old layout
+
+ if(playerDiv.length)
+ {
+  $j(playerDiv).css('z-index', '999999');
+ }
+ else {
+       // it's on youtube new layout
+       $j('#player').css('z-index', '999999');
+      }
 
  $j('#wb-lightbulb').attr('src', 'https://docs.google.com/uc?export=download&id=0B9FDK9Kf1tV1Mk1LRXRPZUcwS2s');
 }
