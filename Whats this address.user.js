@@ -1,19 +1,22 @@
 // ==UserScript==
 // @name         Whats this address
 // @namespace    http://tampermonkey.net/
-// @version      0.1.1.0
+// @version      0.1.2.0
 // @description  HG532e router Mac address device owner description
 // @match        http://192.168.1.1/html/*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
+// @grant        GM_addStyle
 // ==/UserScript==
 
 var $j = jQuery.noConflict(true);
 
-var lang = {eng:{addBtn:"Add", updateBtn:"update", removeBtn:"Remove", closeBtn:"close", addrMacInfo: "MAC Address", addrMacOwnerInfo: "of"},
-            fr:{addBtn:"Ajouter", updateBtn:"Modifier", removeBtn:"Supprimer", closeBtn:"Fermer", addrMacInfo: "Adresse MAC", addrMacOwnerInfo: "de"}};
+var lang = {eng:{addBtn:"Add", updateBtn:"update", removeBtn:"Remove", closeBtn:"close", addrMacInfo: "MAC Address", addrMacOwnerInfo: "of",
+                 addError: "Invalid MAC Address or an empty name!", removeError: "Invalid MAC Address!"},
+            fr:{addBtn:"Ajouter", updateBtn:"Modifier", removeBtn:"Supprimer", closeBtn:"Fermer", addrMacInfo: "Adresse MAC", addrMacOwnerInfo: "de",
+                addError: "Adresse MAC invalide ou un nom vide!", removeError: "Adresse MAC invalide!"}};
 
 function getDialogBox()
 {
@@ -47,24 +50,89 @@ return lang;
 }
 
 
-function enableDisableBtns(selText)
+function enableDisableBtns(selText, isMacAddr)
 {
+ // default function params
+ if (typeof(isMacAddr) === 'undefined') isMacAddr = true;
+
  var topmostFramesMainBody = $j('frame[name="logofrm"]', top.document)[0].contentDocument;
+ var addrMacEle  = getAddressOrOwner('addr');
+ var addrOwnerEle  = getAddressOrOwner('owner');
 
- if(isValidAddress(selText.trim()))
+ if(isMacAddr) // it's a MAC Address
  {
-  var addrMacOwner = GM_getValue('_' + selText.toLowerCase().replace(/[\:\-\s]/gi, ''), '');
-  var addrOwnerEle  = getAddressOrOwner('owner');
-  $j(addrOwnerEle).prop('value', addrMacOwner);
-
-  if(addrMacOwner == '')
+  if(isValidAddress(selText.trim())) // a valid MAC Address
   {
+   $j(addrMacEle).removeClass('invalid-input');
+
+   var addrMacOwner = GM_getValue('_' + selText.toLowerCase().replace(/[\:\-\s]/gi, ''), '');
+   $j(addrOwnerEle).prop('value', addrMacOwner);
+
+   if(addrMacOwner == '') // a new MAC Address to be added
+   {
+
+    if($j(addrOwnerEle).val().trim() == '') // empty "Owner" value -> disable the "Add" button and highlight the "Owner" input field
+    {
+     $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].addBtn).prop("disabled", true);
+     $j(addrOwnerEle).addClass('invalid-input');
+    }
+    else {
+          $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].addBtn).prop("disabled", false);
+          $j(addrOwnerEle).removeClass('invalid-input');
+         }
+
+    $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
+
+   }
+   else { // an existing MAC Address
+         if($j(addrOwnerEle).val().trim() == '') // empty "Owner" value -> disable the "Update" button and highlight the "Owner" input field
+         {
+          $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].updateBtn).prop("disabled", true);
+          $j(addrOwnerEle).addClass('invalid-input');
+         }
+         else {
+               $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].updateBtn).prop("disabled", false);
+               $j(addrOwnerEle).removeClass('invalid-input');
+              }
+
+         $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", false);
+        }
+  }
+  else {// an invalid MAC Address -> disable all buttons + highlight the "MAC Address" input field
+        $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
+        $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", true);
+
+        $j(addrMacEle).addClass('invalid-input');
+       }
+
+ }
+ else if(!isMacAddr) // it's the "Owner" value to be added/updated
+ {
+  if(selText.trim() == '') // empty "Owner" value -> disable all the buttons and highlight the "Owner" input field
+  {
+   $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", true);
    $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
-   $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].addBtn).prop("disabled", false);
+   $j(addrOwnerEle).addClass('invalid-input');
+
   }
   else {
-        $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", false);
-        $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].updateBtn).prop("disabled", false);
+        // check if MAC Address is valid
+        if(isValidAddress($j(addrMacEle).val().trim())) // a valid MAC Address
+        {
+         $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", false);
+         $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", false);
+
+         $j(addrMacEle).removeClass('invalid-input');
+        }
+        else {// an invalid MAC Address -> disable all buttons + highlight the "MAC Address" input field
+              $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", true);
+              $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
+
+              $j(addrMacEle).addClass('invalid-input');
+             }
+
+
+        $j(addrOwnerEle).removeClass('invalid-input');
        }
 
  }
@@ -154,8 +222,12 @@ function whoseThis(selText)
 
 function addNewAddress(address, owner)
 {
- var validKey = '_' + address.replace(/[\:\-\s]/gi, '');
- GM_setValue(validKey.toLowerCase(), owner.trim());
+ if(isValidAddress(address) && owner.trim() != '')
+ {
+  var validKey = '_' + address.replace(/[\:\-\s]/gi, '');
+  GM_setValue(validKey.toLowerCase(), owner.trim());
+ }
+ else alert(lang[getLang()].addError);
 }
 
 
@@ -163,7 +235,11 @@ function removeAddress(address)
 {
  var validKey = '_' + address.replace(/[\:\-\s]/gi, '');
 
- GM_deleteValue(validKey.toLowerCase());
+ if(isValidAddress(address))
+ {
+  GM_deleteValue(validKey.toLowerCase());
+ }
+ else alert(lang[getLang()].removeError);
 
 return (GM_getValue(validKey.toLowerCase(), '') == '');
 }
@@ -171,6 +247,7 @@ return (GM_getValue(validKey.toLowerCase(), '') == '');
 
 (function() {
     $j(document).ready(function(){
+   GM_addStyle(".invalid-input { border: solid 3px red !important;} ");
 
     var selectionTxt ='';
     var topmostFramesMainBody = $j('frame[name="logofrm"]', top.document)[0].contentDocument;
@@ -188,6 +265,12 @@ return (GM_getValue(validKey.toLowerCase(), '') == '');
       $j(document).on('input', '#wb-addr', function(e){
         var address = $j(this).val().trim();
         enableDisableBtns(address);
+      });
+
+    //
+      $j(document).on('input', '#wb-addrOwner', function(e){
+        var address = $j(this).val().trim();
+        enableDisableBtns(address, false);
       });
 
     // buttons click events {add , remove, close}
