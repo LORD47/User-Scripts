@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Whats this address
 // @namespace    http://tampermonkey.net/
-// @version      0.1.2.0
+// @version      0.1.3.0
 // @description  HG532e router Mac address device owner description
 // @match        http://192.168.1.1/html/*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
@@ -58,6 +58,7 @@ function enableDisableBtns(selText, isMacAddr)
  var topmostFramesMainBody = $j('frame[name="logofrm"]', top.document)[0].contentDocument;
  var addrMacEle  = getAddressOrOwner('addr');
  var addrOwnerEle  = getAddressOrOwner('owner');
+ var addrMacOwner;
 
  if(isMacAddr) // it's a MAC Address
  {
@@ -65,7 +66,7 @@ function enableDisableBtns(selText, isMacAddr)
   {
    $j(addrMacEle).removeClass('invalid-input');
 
-   var addrMacOwner = GM_getValue('_' + selText.toLowerCase().replace(/[\:\-\s]/gi, ''), '');
+   addrMacOwner = GM_getValue('_' + selText.toLowerCase().replace(/[\:\-\s]/gi, ''), '');
    $j(addrOwnerEle).prop('value', addrMacOwner);
 
    if(addrMacOwner == '') // a new MAC Address to be added
@@ -108,41 +109,36 @@ function enableDisableBtns(selText, isMacAddr)
  }
  else if(!isMacAddr) // it's the "Owner" value to be added/updated
  {
+  addrMacOwner = GM_getValue('_' + $j(addrMacEle).val().toLowerCase().replace(/[\:\-\s]/gi, ''), '');
+
   if(selText.trim() == '') // empty "Owner" value -> disable all the buttons and highlight the "Owner" input field
   {
    $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", true);
-   $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
    $j(addrOwnerEle).addClass('invalid-input');
-
   }
   else {
         // check if MAC Address is valid
         if(isValidAddress($j(addrMacEle).val().trim())) // a valid MAC Address
         {
          $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", false);
-         $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", false);
-
          $j(addrMacEle).removeClass('invalid-input');
         }
         else {// an invalid MAC Address -> disable all buttons + highlight the "MAC Address" input field
               $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", true);
-              $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
-
               $j(addrMacEle).addClass('invalid-input');
              }
-
 
         $j(addrOwnerEle).removeClass('invalid-input');
        }
 
+  if(addrMacOwner.trim() == '') $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
+  else $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", false);
  }
  else {
        $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
        $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", true);
       }
-
 }
-
 
 
 function addInfo()
@@ -180,7 +176,7 @@ function addInfo()
 //check if it's a Mac @
 function isValidAddress(addr)
 {
-  var regexp = /^(([A-Fa-f0-9]{2}[:]){5}[A-Fa-f0-9]{2}[,]?)+$/i;
+ var regexp = /^(([A-Fa-f0-9]{2}[:]){5}[A-Fa-f0-9]{2}[,]?)+$/i;
 
  return regexp.test(addr);
 }
