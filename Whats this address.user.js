@@ -5,7 +5,6 @@
 // @description  HG532e router Mac address device owner description
 // @match        http://192.168.1.1/html/*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
-// @resource     customCSS https://fonts.googleapis.com/icon?family=Material+Icons
 // @require      https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js
 // @grant        GM_setValue
 // @grant        GM_getValue
