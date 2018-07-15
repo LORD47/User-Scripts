@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Whats this address
 // @namespace    http://tampermonkey.net/
-// @version      0.1.4.0
+// @version      0.1.5.0
 // @description  HG532e router Mac address device owner description
 // @match        http://192.168.1.1/html/*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
@@ -16,23 +16,27 @@
 
 var $j = jQuery.noConflict(true);
 
-var lang = {eng:{addBtn:"Add", updateBtn:"update", removeBtn:"Remove", closeBtn:"close", viewAllAddrBtn: {label: "i", title: "List of all saved MAC Addresses", noSavedAddr: "No saved MAC address!", noMoreAddr: 'No more saved MAC addresses!', confirmDelete: "Do you really want to remove this MAC Address?", tooltip: {view: "View all saved MAC Addresses", edit: "Validate this saved MAC address", remove: "Remove this saved MAC address"}}, addrMacInfo: "MAC Address", addrMacOwnerInfo: "of",
+var lang = {eng:{addBtn:"Add", updateBtn:"update", removeBtn:"Remove", viewAllAddrBtn: {label: "i", title: "List of all saved MAC Addresses", filter: {label: "Filter results", placeholder: "MAC address or owner's name"}, noSavedAddr: "No saved MAC address!", noMoreAddr: 'No more saved MAC addresses!', confirmDelete: "Do you really want to remove this MAC Address?", tooltip: {view: "View all saved MAC Addresses", edit: "Validate this saved MAC address", remove: "Remove this saved MAC address"}}, addrMacInfo: "MAC Address", addrMacOwnerInfo: "of",
                  addError: "Invalid MAC Address or an empty name!", removeError: "Invalid MAC Address!"},
-            fr:{addBtn:"Ajouter", updateBtn:"Modifier", removeBtn:"Supprimer", closeBtn:"Fermer", viewAllAddrBtn: {label: "i", title: "Liste de toutes les adresses MAC enregistrées", noSavedAddr: "Aucune addresse MAC enregistrée!", noMoreAddr: 'Aucune autre adresse MAC!', confirmDelete: "Voulez-vous vraiment supprimer cette adresse MAC?", tooltip: {view: "Voir toutes les adresses MAC enregistrées", edit: "Valider cette adresse MAC enregistrée", remove: "Supprimer cette adresse MAC enregistrée"}}, addrMacInfo: "Adresse MAC", addrMacOwnerInfo: "de",
+            fr:{addBtn:"Ajouter", updateBtn:"Modifier", removeBtn:"Supprimer", viewAllAddrBtn: {label: "i", title: "Liste de toutes les adresses MAC enregistrées", filter: {label: "Filtrer les résultas", placeholder: "adresse MAC ou nom du propriétaire"}, noSavedAddr: "Aucune addresse MAC enregistrée!", noMoreAddr: 'Aucune autre adresse MAC!', confirmDelete: "Voulez-vous vraiment supprimer cette adresse MAC?", tooltip: {view: "Voir toutes les adresses MAC enregistrées", edit: "Valider cette adresse MAC enregistrée", remove: "Supprimer cette adresse MAC enregistrée"}}, addrMacInfo: "Adresse MAC", addrMacOwnerInfo: "de",
                 addError: "Adresse MAC invalide ou un nom vide!", removeError: "Adresse MAC invalide!"}};
 
 function getDialogBox()
 {
  var currentLang = getLang();
 
- var dlgBox = '<div id="wb-dlgBox" style="display: none; position: fixed; border:black solid 1px;  padding: 10px; margin:0 auto 0 auto; left: 10px; top: 20px; z-index:99; border-radius: 5px;">'
-              +'<label for="wb-addr">'+ lang[currentLang].addrMacInfo +':</label><input type="text" id="wb-addr" value=""/>'
-              +'<label for="wb-addrOwner" style="margin-left: 5px;">'+ lang[currentLang].addrMacOwnerInfo +':</label><input type="text" id="wb-addrOwner" value=""/>'
-              +'<a id="viewAllSavedAddr" style="float: right; margin-left: 2px;" title="'+ lang[currentLang].viewAllAddrBtn.tooltip.view +'"><i class="material-icons md-18">info</i></a>'
-              +'<br>'
-              +'<button name="closeDlgBoxDiv" id="wb-closeDlgBoxDiv" style="float: right; margin: 5px 0px 0px 5px;">'+ lang[currentLang].closeBtn +'</button>'
-              +'<button name="removeMacAddr" id="wb-removeMacAddr" style="float: right; margin: 5px 0px 0px 5px;">'+ lang[currentLang].removeBtn +'</button>'
-              +'<button name="addMacAddr" id="wb-addMacAddr" style="float: right; margin-top: 5px">'+ lang[currentLang].addBtn +'</button>'
+ var dlgBox = '<div id="wb-dlgBox" style="display: none;">'
+              +'<label for="wb-addr">'+ lang[currentLang].addrMacInfo +':</label>'
+              +'<input type="text" id="wb-addr" value="">'
+
+              +'<label for="wb-addrOwner" style="margin-left: 5px;">'+ lang[currentLang].addrMacOwnerInfo +':</label>'
+              +'<input type="text" id="wb-addrOwner" value="">'
+
+              +'<a id="viewAllSavedAddr" style="float: right; margin-left: 2px;" title="'+ lang[currentLang].viewAllAddrBtn.tooltip.view +'">'
+              +'<i class="material-icons md-18">info</i></a>'
+
+              +'<button name="removeMacAddr" id="wb-removeMacAddr" class="ui-button ui-corner-all ui-widget">'+ lang[currentLang].removeBtn +'</button>'
+              +'<button name="addMacAddr" id="wb-addMacAddr" class="ui-button ui-corner-all ui-widget">'+ lang[currentLang].addBtn +'</button>'
               +'</div>';
 
  return dlgBox;
@@ -68,7 +72,7 @@ function viewAllSavedAddr()
                        +'<span class="ui-button-icon ui-icon ui-icon-check"></span>'
                       +'</button>'
 
-                      +'<button class="removeSavedAddr ui-button ui-corner-all ui-widget ui-button-icon-only" data-remove="'+idx+'"style="margin-left: 5px; width: 20px; padding: 8px;" title="'+ lang[currentLang].viewAllAddrBtn.tooltip.remove +'">'
+                      +'<button class="removeSavedAddr ui-button ui-corner-all ui-widget ui-button-icon-only" style="margin-left: 5px; width: 20px; padding: 8px;" title="'+ lang[currentLang].viewAllAddrBtn.tooltip.remove +'">'
                        +'<span class="ui-button-icon ui-icon ui-icon-closethick"></span>'
                       +'</button>'
                      +'</div>';
@@ -84,10 +88,21 @@ function viewAllSavedAddr()
 
   $j(dlgBoxDiv).html(viewAllAddrBox);
 
-  $j( "#wb-AllAddrBox" ).dialog({title: lang[currentLang].viewAllAddrBtn.title, width: 500, height: 200, overflow:"auto"}).find('input').addClass("ui-widget ui-widget-content ui-corner-all ui-textfield")
+ // add results filter
+ if(idx > 0)
+ {
+  $j(dlgBoxDiv).prepend('<label for="filter-results" class="mac-addr-list">'+ lang[currentLang].viewAllAddrBtn.filter.label +'</label>'
+                        +'<input type="text" id="filter-results" class="filter-list-by" value="" placeholder="'+ lang[currentLang].viewAllAddrBtn.filter.placeholder +'...">');
+ }
+
+  $j("#wb-AllAddrBox" ).dialog({modal: true, title: lang[currentLang].viewAllAddrBtn.title, width: 500, height: 200, overflow:"auto"}).find('input').addClass("ui-widget ui-widget-content ui-corner-all ui-textfield")
     .css({"margin": "5px 0px","width": "170", "font-size": "12px", "height": "25px", "padding": "3px"})
     .siblings('label').css({"font-size": "13px", "display": "block", "width": "115px", "float": "left", "padding": "10px 10px 0px 0px", "text-align": "right"})
+
+  $j('#filter-results').css({'width': '300px'});
 }
+
+
 
 
 function getLang()
@@ -158,34 +173,34 @@ function enableDisableBtns(selText, isMacAddr)
 
     if($j(addrOwnerEle).val().trim() == '') // empty "Owner" value -> disable the "Add" button and highlight the "Owner" input field
     {
-     $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].addBtn).prop("disabled", true);
+     $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].addBtn).attr("disabled", true).addClass("ui-state-disabled");
      $j(addrOwnerEle).addClass('invalid-input');
     }
     else {
-          $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].addBtn).prop("disabled", false);
+          $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].addBtn).attr("disabled", false).removeClass("ui-state-disabled");
           $j(addrOwnerEle).removeClass('invalid-input');
          }
 
-    $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
+    $j(topmostFramesMainBody).find('#wb-removeMacAddr').attr("disabled", true).addClass("ui-state-disabled");
 
    }
    else { // an existing MAC Address
          if($j(addrOwnerEle).val().trim() == '') // empty "Owner" value -> disable the "Update" button and highlight the "Owner" input field
          {
-          $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].updateBtn).prop("disabled", true);
+          $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].updateBtn).attr("disabled", true).addClass("ui-state-disabled");
           $j(addrOwnerEle).addClass('invalid-input');
          }
          else {
-               $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].updateBtn).prop("disabled", false);
+               $j(topmostFramesMainBody).find('#wb-addMacAddr').html(lang[getLang()].updateBtn).attr("disabled", false).removeClass("ui-state-disabled");
                $j(addrOwnerEle).removeClass('invalid-input');
               }
 
-         $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", false);
+         $j(topmostFramesMainBody).find('#wb-removeMacAddr').attr("disabled", false).removeClass("ui-state-disabled");
         }
   }
   else {// an invalid MAC Address -> disable all buttons + highlight the "MAC Address" input field
-        $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
-        $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", true);
+        $j(topmostFramesMainBody).find('#wb-removeMacAddr').attr("disabled", true).addClass("ui-state-disabled");
+        $j(topmostFramesMainBody).find('#wb-addMacAddr').attr("disabled", true).addClass("ui-state-disabled");
 
         $j(addrMacEle).addClass('invalid-input');
        }
@@ -197,30 +212,30 @@ function enableDisableBtns(selText, isMacAddr)
 
   if(selText.trim() == '') // empty "Owner" value -> disable all the buttons and highlight the "Owner" input field
   {
-   $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", true);
+   $j(topmostFramesMainBody).find('#wb-addMacAddr').attr("disabled", true).addClass("ui-state-disabled");
    $j(addrOwnerEle).addClass('invalid-input');
   }
   else {
         // check if MAC Address is valid
         if(isValidAddress($j(addrMacEle).val().trim())) // a valid MAC Address
         {
-         $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", false);
+         $j(topmostFramesMainBody).find('#wb-addMacAddr').attr("disabled", false).removeClass("ui-state-disabled");
          $j(addrMacEle).removeClass('invalid-input');
         }
         else {// an invalid MAC Address -> disable all buttons + highlight the "MAC Address" input field
-              $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", true);
+              $j(topmostFramesMainBody).find('#wb-addMacAddr').attr("disabled", true).addClass("ui-state-disabled");
               $j(addrMacEle).addClass('invalid-input');
              }
 
         $j(addrOwnerEle).removeClass('invalid-input');
        }
 
-  if(addrMacOwner.trim() == '') $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
-  else $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", false);
+  if(addrMacOwner.trim() == '') $j(topmostFramesMainBody).find('#wb-removeMacAddr').attr("disabled", true).addClass("ui-state-disabled");
+  else $j(topmostFramesMainBody).find('#wb-removeMacAddr').attr("disabled", false).removeClass("ui-state-disabled");
  }
  else {
-       $j(topmostFramesMainBody).find('#wb-removeMacAddr').prop("disabled", true);
-       $j(topmostFramesMainBody).find('#wb-addMacAddr').prop("disabled", true);
+       $j(topmostFramesMainBody).find('#wb-removeMacAddr').attr("disabled", true).addClass("ui-state-disabled");
+       $j(topmostFramesMainBody).find('#wb-addMacAddr').attr("disabled", true).addClass("ui-state-disabled");
       }
 }
 
@@ -286,6 +301,7 @@ function getAddressOrOwner(query)
 
 function whoseThis(selText)
 {
+ var currentLang = getLang();
  var addrEle = getAddressOrOwner('addr');
  $j(addrEle).prop("value", selText);
 
@@ -296,8 +312,20 @@ function whoseThis(selText)
  enableDisableBtns(selText);
 
  var topmostFramesMainBody = $j('frame[name="logofrm"]', top.document)[0].contentDocument;
- $j(topmostFramesMainBody).find('#wb-dlgBox').show();
-}
+ var targetEle = $j(topmostFramesMainBody).find('body');
+
+ // 1-the "jquery ui dialog" will add the class "ui-dialog-content" to the div with id="wb-dlgBox"
+ // 2-when frames are refreshed and the dialog (containing the above div) is already open, a new instance of the dialog is piled above the old one,
+ // so to prevent this, we should check if the dialog is already open -> div with id="wb-dlgBox" doesn't have the class "ui-dialog-content"
+
+ $j(topmostFramesMainBody).find('#wb-dlgBox:not(.ui-dialog-content)').each(function(){
+    $j(topmostFramesMainBody).find('#wb-dlgBox').dialog({close: function(){$j(this).dialog('destroy')}, show: "slide", hide: "slide", position : {my: "left top", at: "left+10 top+20", of: $j(targetEle)}, resizable: false, width: 550, height: 155}).find('input').addClass("ui-widget ui-widget-content ui-corner-all ui-textfield")
+       .css({"margin": "0px 5px","width": "170", "font-size": "12px", "height": "25px", "padding": "3px"})
+       .siblings('label').css({"font-size": "13px"})
+       .siblings('button').css({"font-family": "tahoma", "font-weight": "normal", "font-size": "13px", "margin": "15px 5px", "float": "right"});
+   });
+ }
+
 
 
 function addNewAddress(address, owner)
@@ -339,7 +367,7 @@ return (getSavedAddr(validKey, '') == '');
     // load  jquery UI CSS
     $j("head").append('<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/ui-darkness/jquery-ui.css"> rel="stylesheet" type="text/css">');
 
-    GM_addStyle(".invalid-input { border: solid 3px red !important;} ");
+    GM_addStyle(".invalid-input { border: solid 2px red !important;} ");
 
     // increase document height (top parent "frameset") to make more room for the 1st frame that holds the pop-up dialog boxes
     var topFrameset = $j('frameset', top.document)[0];
@@ -392,11 +420,6 @@ return (getSavedAddr(validKey, '') == '');
        }
 
        $j('html, body').css('cursor', 'default');
-    });
-
-    // close infos dialog box
-    $j(document).on('click', '#wb-closeDlgBoxDiv', function(){
-        $j('#wb-dlgBox').hide();
     });
 
 
@@ -458,6 +481,21 @@ return (getSavedAddr(validKey, '') == '');
 
      });
 
+    // filter the "all Mac addresses list" pop-up results on user input
+     $j(document).on('input', '#filter-results', function(){
+      var filterVal = $j(this).val().trim().toLowerCase();
+
+      $j('#wb-AllAddrBox input.owner-name-list').parent().hide().filter(function(){
+        var addrMAC = $j(this).find('label.mac-addr-list').text().trim().toLowerCase();
+        var ownerName = $j(this).find('input.owner-name-list').val().trim().toLowerCase();
+
+        return (addrMAC.indexOf(filterVal) > -1 || ownerName.indexOf(filterVal) > -1);
+       }).show();
+
+
+     });
+
+
 
      // capture mouse text selection
     $j(document.body).bind('mouseup', function(e)
@@ -473,13 +511,17 @@ return (getSavedAddr(validKey, '') == '');
         }
 
         // show info dialog box about the selected text if it's a valid MAC address
-        if(isValidAddress(selectionTxt.toString().trim())) whoseThis(selectionTxt.toString().trim());
-
-        $j(document).on('click', 'a#viewAllSavedAddr', function(){
-          viewAllSavedAddr();
-        });
+        if(isValidAddress(selectionTxt.toString().trim()))
+        {
+         whoseThis(selectionTxt.toString().trim());
+        }
 
    });
+
+
+   $j(document).on('click', 'a#viewAllSavedAddr', function(){
+       viewAllSavedAddr();
+    });
 
     });
 })();
