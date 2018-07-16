@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Whats this address
 // @namespace    http://tampermonkey.net/
-// @version      0.1.5.0
+// @version      0.1.5.1
 // @description  HG532e router Mac address device owner description
 // @match        http://192.168.1.1/html/*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
@@ -498,9 +498,8 @@ return (getSavedAddr(validKey, '') == '');
 
 
      // capture mouse text selection
-    $j(document.body).bind('mouseup', function(e)
+    $j(document).on('mouseup', function(e)
     {
-
         if(window.getSelection)
         {
          selectionTxt = window.getSelection();
