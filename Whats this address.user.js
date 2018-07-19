@@ -80,8 +80,6 @@ function viewAllSavedAddr()
 }
 
 
-
-
 function getLang()
 {
  var topmostFramesMainBody = $j('frame[name="logofrm"]', top.document)[0].contentDocument;
@@ -253,7 +251,6 @@ function addInfo()
 function isValidAddress(addr)
 {
  var regexp = /^(([A-Fa-f0-9]{2}[:]){5}[A-Fa-f0-9]{2}[,]?)+$/i;
-
  return regexp.test(addr);
 }
 
@@ -302,7 +299,6 @@ function whoseThis(selText)
   $j(topmostFramesMainBody).find('body').append(dlgBox);
   dlgBoxDiv = $j(topmostFramesMainBody).find('#wb-dlgBox');
  }
-
 
  var addrEle = getAddressOrOwner('addr');
  $j(addrEle).prop("value", selText);
@@ -480,9 +476,7 @@ return (getSavedAddr(validKey, '') == '');
         return (addrMAC.indexOf(filterVal) > -1 || ownerName.indexOf(filterVal) > -1);
        }).show();
 
-
      });
-
 
 
      // capture mouse text selection
@@ -503,7 +497,6 @@ return (getSavedAddr(validKey, '') == '');
          // calling the "hackshit" -> whoseThis()
          $j($j('#logofrm', top.document)[0].contentDocument).find('#hackshit').attr('data-addr', selectionTxt.toString().trim()).click();
         }
-
    });
 
    // very important!!!
@@ -515,15 +508,15 @@ return (getSavedAddr(validKey, '') == '');
       }
    });
 
-    // pop-up dialog box on this button click
-    $j(document).on('click', '#hackshit', function(){
-       whoseThis($j(this).attr('data-addr'));
-    });
+   // pop-up dialog box on this button click
+   $j(document).on('click', '#hackshit', function(){
+      whoseThis($j(this).attr('data-addr'));
+   });
 
 
    $j(document).on('click', 'a#viewAllSavedAddr', function(){
-       viewAllSavedAddr();
-    });
+      viewAllSavedAddr();
+   });
 
     });
 })();
