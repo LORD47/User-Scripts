@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Whats this address
 // @namespace    http://tampermonkey.net/
-// @version      0.1.5.1
+// @version      0.1.6.0
 // @description  HG532e router Mac address device owner description
 // @match        http://192.168.1.1/html/*
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
@@ -20,29 +20,6 @@ var lang = {eng:{addBtn:"Add", updateBtn:"update", removeBtn:"Remove", viewAllAd
                  addError: "Invalid MAC Address or an empty name!", removeError: "Invalid MAC Address!"},
             fr:{addBtn:"Ajouter", updateBtn:"Modifier", removeBtn:"Supprimer", viewAllAddrBtn: {label: "i", title: "Liste de toutes les adresses MAC enregistrées", filter: {label: "Filtrer les résultas", placeholder: "adresse MAC ou nom du propriétaire"}, noSavedAddr: "Aucune addresse MAC enregistrée!", noMoreAddr: 'Aucune autre adresse MAC!', confirmDelete: "Voulez-vous vraiment supprimer cette adresse MAC?", tooltip: {view: "Voir toutes les adresses MAC enregistrées", edit: "Valider cette adresse MAC enregistrée", remove: "Supprimer cette adresse MAC enregistrée"}}, addrMacInfo: "Adresse MAC", addrMacOwnerInfo: "de",
                 addError: "Adresse MAC invalide ou un nom vide!", removeError: "Adresse MAC invalide!"}};
-
-function getDialogBox()
-{
- var currentLang = getLang();
-
- var dlgBox = '<div id="wb-dlgBox" style="display: none;">'
-              +'<label for="wb-addr">'+ lang[currentLang].addrMacInfo +':</label>'
-              +'<input type="text" id="wb-addr" value="">'
-
-              +'<label for="wb-addrOwner" style="margin-left: 5px;">'+ lang[currentLang].addrMacOwnerInfo +':</label>'
-              +'<input type="text" id="wb-addrOwner" value="">'
-
-              +'<a id="viewAllSavedAddr" style="float: right; margin-left: 2px;" title="'+ lang[currentLang].viewAllAddrBtn.tooltip.view +'">'
-              +'<i class="material-icons md-18">info</i></a>'
-
-              +'<button name="removeMacAddr" id="wb-removeMacAddr" class="ui-button ui-corner-all ui-widget">'+ lang[currentLang].removeBtn +'</button>'
-              +'<button name="addMacAddr" id="wb-addMacAddr" class="ui-button ui-corner-all ui-widget">'+ lang[currentLang].addBtn +'</button>'
-              +'</div>';
-
- return dlgBox;
-}
-
-
 
 function viewAllSavedAddr()
 {
@@ -302,6 +279,31 @@ function getAddressOrOwner(query)
 function whoseThis(selText)
 {
  var currentLang = getLang();
+
+ var topmostFramesMainBody = $j('frame[name="logofrm"]', top.document)[0].contentDocument;
+ var dlgBoxDiv = $j(topmostFramesMainBody).find('#wb-dlgBox');
+
+ if(!dlgBoxDiv.length)
+ {
+  var dlgBox = '<div id="wb-dlgBox" style="display: block;">'
+               +'<label for="wb-addr">'+ lang[currentLang].addrMacInfo +':</label>'
+               +'<input type="text" id="wb-addr" value="">'
+
+               +'<label for="wb-addrOwner" style="margin-left: 5px;">'+ lang[currentLang].addrMacOwnerInfo +':</label>'
+               +'<input type="text" id="wb-addrOwner" value="">'
+
+               +'<a id="viewAllSavedAddr" style="float: right; margin-left: 2px;" title="'+ lang[currentLang].viewAllAddrBtn.tooltip.view +'">'
+               +'<i class="material-icons md-18">info</i></a>'
+
+               +'<button name="removeMacAddr" id="wb-removeMacAddr" class="ui-button ui-corner-all ui-widget">'+ lang[currentLang].removeBtn +'</button>'
+               +'<button name="addMacAddr" id="wb-addMacAddr" class="ui-button ui-corner-all ui-widget">'+ lang[currentLang].addBtn +'</button>'
+               +'</div>';
+
+  $j(topmostFramesMainBody).find('body').append(dlgBox);
+  dlgBoxDiv = $j(topmostFramesMainBody).find('#wb-dlgBox');
+ }
+
+
  var addrEle = getAddressOrOwner('addr');
  $j(addrEle).prop("value", selText);
 
@@ -311,19 +313,12 @@ function whoseThis(selText)
 
  enableDisableBtns(selText);
 
- var topmostFramesMainBody = $j('frame[name="logofrm"]', top.document)[0].contentDocument;
  var targetEle = $j(topmostFramesMainBody).find('body');
 
- // 1-the "jquery ui dialog" will add the class "ui-dialog-content" to the div with id="wb-dlgBox"
- // 2-when frames are refreshed and the dialog (containing the above div) is already open, a new instance of the dialog is piled above the old one,
- // so to prevent this, we should check if the dialog is already open -> div with id="wb-dlgBox" doesn't have the class "ui-dialog-content"
-
- $j(topmostFramesMainBody).find('#wb-dlgBox:not(.ui-dialog-content)').each(function(){
-    $j(topmostFramesMainBody).find('#wb-dlgBox').dialog({close: function(){$j(this).dialog('destroy')}, show: "slide", hide: "slide", position : {my: "left top", at: "left+10 top+20", of: $j(targetEle)}, resizable: false, width: 550, height: 155}).find('input').addClass("ui-widget ui-widget-content ui-corner-all ui-textfield")
+ $j('#wb-dlgBox').dialog({show: "slide", hide: "slide", position : {my: "left top", at: "left+10 top+20", of: $j(targetEle)}, resizable: false, width: 550, height: 155}).find('input').addClass("ui-widget ui-widget-content ui-corner-all ui-textfield")
        .css({"margin": "0px 5px","width": "170", "font-size": "12px", "height": "25px", "padding": "3px"})
        .siblings('label').css({"font-size": "13px"})
        .siblings('button').css({"font-family": "tahoma", "font-weight": "normal", "font-size": "13px", "margin": "15px 5px", "float": "right"});
-   });
  }
 
 
@@ -374,13 +369,6 @@ return (getSavedAddr(validKey, '') == '');
         $j(topFrameset).attr('rows', "218,*,50");
 
     var selectionTxt ='';
-    var topmostFramesMainBody = $j('frame[name="logofrm"]', top.document)[0].contentDocument;
-    var dlgBoxDiv = $j(topmostFramesMainBody).find('#wb-dlgBox');
-
-    if(!dlgBoxDiv.length)
-    {
-     $j(topmostFramesMainBody).find('body').append(getDialogBox());
-    }
 
     // add displayed MAC addresses owners' infos
     addInfo();
@@ -512,10 +500,25 @@ return (getSavedAddr(validKey, '') == '');
         // show info dialog box about the selected text if it's a valid MAC address
         if(isValidAddress(selectionTxt.toString().trim()))
         {
-         whoseThis(selectionTxt.toString().trim());
+         // calling the "hackshit" -> whoseThis()
+         $j($j('#logofrm', top.document)[0].contentDocument).find('#hackshit').attr('data-addr', selectionTxt.toString().trim()).click();
         }
 
    });
+
+   // very important!!!
+   // add a hidden button to 'logofrm' frame so we could close the "wb-dlgBox" even when this frame refreshes
+   $j($j('#logofrm', top.document)[0].contentDocument).each(function(){
+      if(!$j(this).find('#hackshit').length)
+      {
+       $j(this).find('body').append('<button id="hackshit" data-addr="" style="display: none"></button>');
+      }
+   });
+
+    // pop-up dialog box on this button click
+    $j(document).on('click', '#hackshit', function(){
+       whoseThis($j(this).attr('data-addr'));
+    });
 
 
    $j(document).on('click', 'a#viewAllSavedAddr', function(){
