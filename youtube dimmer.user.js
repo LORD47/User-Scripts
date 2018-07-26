@@ -1,10 +1,10 @@
 // ==UserScript==
-// @name       youtube dimmer
+// @name         youtube dimmer
 // @description  Turn the lights off
 // @require      https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js
 // @require      http://www.openjs.com/scripts/events/keyboard_shortcuts/shortcut.js
-// @include    /https?://(www.)?youtube.com/*/
-// @version        3.0
+// @include      /https?://(www.)?youtube.com/*/
+// @version      3.1
 // @grant    none
 // ==/UserScript==
 
@@ -37,7 +37,7 @@ function lightOff()
 
  // the div that contains the video player, change its z-index to a value > our dimmer div to make it visible
  var playerDiv = $j('#player-api'); // youtube old layout
- var playerDiv_new  = $j('#player.ytd-watch'); // youtube new layout
+ var playerDiv_new = $j('#player.style-scope.ytd-watch-flexy'); // youtube new layout
 
  makeItShow(playerDiv);
  makeItShow(playerDiv_new);
@@ -90,4 +90,3 @@ function lightOn()
     });
 
 })();
-
